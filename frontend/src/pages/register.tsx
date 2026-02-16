@@ -1,125 +1,120 @@
-import { Link, useNavigate } from "react-router-dom";
-import axios, { AxiosError } from "axios";
-import { useState } from "react";
+import axios from "axios";
+import { useState, type ChangeEvent, type FormEvent } from "react";
+import api from "../services/axios";
+import { useNavigate } from "react-router-dom";
 
 function Register() {
-    const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState(false);
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-
     const navigate = useNavigate();
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        password: "",
+    });
 
-        setError(null);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setErrorMessage("");
+        setLoading(true);
 
         try {
-            await axios.post("http://localhost:3333/register", {
-                name,
-                email,
-                password,
-            });
-            setSuccess(true);
-        } catch (err: unknown) {
-            let message = "Erro inesperado";
+            const res = await api.post("/register", formData);
 
-            if (axios.isAxiosError(err)) {
-                message = err.response?.data?.error || message;
+            localStorage.setItem("token", res.data.token);
+            setSuccessMessage("Conta criada com sucesso!");
+
+            setTimeout(() => {
+                navigate("/home");
+            }, 3000);
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                setErrorMessage(
+                    error.response?.data?.message || "Erro ao registrar",
+                );
+            } else {
+                setErrorMessage("Erro inesperado");
             }
-
-            setError(message);
-            setSuccess(false);
+        } finally {
+            setLoading(false);
         }
-        setTimeout(() => {
-            navigate("/");
-        }, 2000);
+    };
+
+    const handleFormEdit = (event: ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center ">
-            <div className="flex flex-col h-[70vh] px-6 justify-evenly items-center bg-white border rounded-lg border-gray-500">
-                <div className=" p-8 ">
-                    <h1 className="mb-6 text-2xl font-semibold text-zinc-800">
-                        Bem vindo!
-                    </h1>
-                    <h1 className="mb-6 text-center text-3xl font-bold text-zinc-800">
-                        Vamos Criar Sua Conta
-                    </h1>
+        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+            <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+                    Criar Conta
+                </h2>
 
-                    <form
-                        onSubmit={handleSubmit}
-                        className="flex flex-col gap-4"
+                <form
+                    onSubmit={handleSubmit}
+                    method="POST"
+                    className="space-y-4"
+                >
+                    <input
+                        type="text"
+                        name="name"
+                        placeholder="Nome"
+                        value={formData.name}
+                        onChange={handleFormEdit}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    />
+
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Email"
+                        value={formData.email}
+                        onChange={handleFormEdit}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    />
+
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Senha"
+                        value={formData.password}
+                        onChange={handleFormEdit}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    />
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className={`w-full ${
+                            successMessage
+                                ? "bg-green-600"
+                                : loading
+                                  ? "bg-gray-400"
+                                  : "bg-blue-600"
+                        } text-white py-2 rounded-lg transition font-semibold`}
                     >
-                        <label className="text-md">
-                            Nome <br />
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Digite seu nome"
-                                className="border w-full border-[#282828] p-3.5 mt-1.5 text-zinc-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 rounded-sm"
-                            />
-                        </label>
+                        {loading
+                            ? "Registrando..."
+                            : successMessage
+                              ? successMessage
+                              : "Registrar"}
+                    </button>
+                </form>
 
-                        <label className="text-md">
-                            Email <br />
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Digite seu Email"
-                                className="border w-full border-[#282828] mt-1.5 p-3.5 text-zinc-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 rounded-sm"
-                            />
-                        </label>
-
-                        <label htmlFor="" className="text-md">
-                            Senha <br />
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Digite sua senha"
-                                className="border w-full border-[#282828] mt-1.5 p-3.5 text-zinc-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 rounded-sm"
-                            />
-                        </label>
-
-                        {error && (
-                            <div className="rounded-md bg-red-100 p-3 text-sm text-red-700">
-                                {error}
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            className={`mt-4 rounded-2xl p-3 text-lg font-semibold text-white transition
-                            ${success ? "bg-green-600" : "bg-blue-600 hover:bg-blue-700"}`}
-                        >
-                            {success
-                                ? "Conta Criada com sucesso!"
-                                : "Criar Conta"}
-                        </button>
-
-                        <div className="text-center text-sm text-zinc-600 mt-4">
-                            Já tem uma conta?{" "}
-                            <Link
-                                to="/login"
-                                className="font-medium text-blue-600 hover:underline"
-                            >
-                                Login
-                            </Link>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div className="hidden w-1/2 items-center justify-center md:flex">
-                <img
-                    src="/business-process-support-new.gif"
-                    alt="Registro"
-                    className="max-w-full"
-                />
+                {errorMessage && (
+                    <p className="mt-4 text-red-500 text-center text-sm">
+                        {errorMessage}
+                    </p>
+                )}
             </div>
         </div>
     );

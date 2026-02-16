@@ -18,8 +18,8 @@ export const createUserService = async (data: createUserInput) => {
 
     const newUser = await prisma.user.create({
         data: {
-            email: data.email,
-            name: data.name,
+            email: data.email.toLowerCase(),
+            name: data.name.toLowerCase(),
             password: passwordCrypt,
         },
     });
@@ -27,7 +27,7 @@ export const createUserService = async (data: createUserInput) => {
     return newUser;
 };
 
-export const getUserByEmail = async (email: string) => {
+export const getUserByEmailService = async (email: string) => {
     const user = await prisma.user.findUnique({ where: { email } });
 
     return user;

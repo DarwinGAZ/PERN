@@ -2,10 +2,15 @@ import { RequestHandler } from "express";
 import {
     createUserService,
     getAllUsersService,
-    getUserByEmail,
+    getUserByEmailService,
 } from "../services/userService";
-import { createUserSchema } from "../schemas/userSchema";
-import bcrypt from "bcrypt";
+import { createUserSchema, loginUserSchema } from "../schemas/userSchema";
+import { compare } from "bcrypt";
+import JWT from "jsonwebtoken";
+import dotenv from "dotenv";
+import { createJWT } from "../libs/jwt";
+
+dotenv.config();
 
 export const getAllUsers: RequestHandler = async (req, res) => {
     const users = await getAllUsersService();
@@ -22,13 +27,43 @@ export const createNewUser: RequestHandler = async (req, res) => {
 
     const validatedData = data.data;
 
-    const existingUser = await getUserByEmail(validatedData.email);
+    const existingUser = await getUserByEmailService(validatedData.email);
 
     if (existingUser) {
-        return res.status(400).json({ error: "Usuário já existe!" });
+        return res
+            .status(400)
+            .json({ error: "Uma conta com esse email já existe!" });
     }
 
     const newUser = await createUserService(validatedData);
 
-    return res.status(201).json({ newUser });
+    const token = createJWT(newUser.id);
+
+    return res.status(201).json({ newUser, token });
+};
+
+export const login: RequestHandler = async (req, res) => {
+    const data = await loginUserSchema.safeParse(req.body);
+
+    if (!data.success) {
+        return res.json({ error: data.error.flatten().fieldErrors });
+    }
+
+    const validatedData = data.data;
+
+    const user = await getUserByEmailService(validatedData.email);
+
+    if (!user) {
+        return res.status(401).json({ error: "Email ou senha inválido(s)" });
+    }
+
+    const matchPass = await compare(validatedData.password, user.password);
+
+    if (!matchPass) {
+        return res.status(401).json({ error: "Email ou senha inválido(s)" });
+    }
+
+    const token = createJWT(user.id);
+
+    res.status(200).json({ user, token });
 };

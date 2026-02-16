@@ -5,3 +5,8 @@ export const createUserSchema = z.object({
     email: z.email("Email Inválido"),
     password: z.string().min(6, "A senha precisa ter no minimo 6 caracteres"),
 });
+
+export const loginUserSchema = z.object({
+    email: z.email("Email Inválido"),
+    password: z.string().min(6),
+});
