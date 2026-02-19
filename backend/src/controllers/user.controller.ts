@@ -1,14 +1,16 @@
-import { RequestHandler } from "express";
+import { RequestHandler, Response } from "express";
 import {
     createUserService,
     getAllUsersService,
     getUserByEmailService,
+    getUserById,
 } from "../services/userService";
 import { createUserSchema, loginUserSchema } from "../schemas/userSchema";
 import { compare } from "bcrypt";
 import JWT from "jsonwebtoken";
 import dotenv from "dotenv";
 import { createJWT } from "../libs/jwt";
+import { AuthRequest } from "../types/AuthType";
 
 dotenv.config();
 
@@ -66,4 +68,16 @@ export const login: RequestHandler = async (req, res) => {
     const token = createJWT(user.id);
 
     res.status(200).json({ user, token });
+};
+
+export const getUser = async (req: AuthRequest, res: Response) => {
+    const id = req.userId;
+
+    if (!id) {
+        return res.status(406).json({ error: "Ocorreu um erro" });
+    }
+
+    const user = await getUserById(id);
+
+    return res.status(200).json({ user });
 };

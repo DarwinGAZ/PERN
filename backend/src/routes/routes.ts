@@ -9,6 +9,7 @@ export const routes = Router();
 routes.get("/ping", pingController.ping);
 routes.get("/api", apiController.api);
 routes.get("/users", verifyJWT, userController.getAllUsers);
+routes.get("/me", verifyJWT, userController.getUser);
 
 routes.post("/register", userController.createNewUser);
 routes.post("/login", userController.login);

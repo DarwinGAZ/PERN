@@ -1,5 +1,6 @@
-import { RequestHandler } from "express";
+import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
+import { AuthRequest } from "../types/AuthType";
 
 export const createJWT = (id: number) => {
     return jwt.sign({ id }, process.env.JWT_SECRET as string, {
@@ -7,7 +8,11 @@ export const createJWT = (id: number) => {
     });
 };
 
-export const verifyJWT: RequestHandler = (req, res, next) => {
+export const verifyJWT = (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+) => {
     const authHeader = req.headers["authorization"];
     if (!authHeader) return res.status(401).json({ error: "Acesso Negado" });
 
@@ -18,6 +23,8 @@ export const verifyJWT: RequestHandler = (req, res, next) => {
         process.env.JWT_SECRET as string,
         (error, decoded: any) => {
             if (error) return res.status(401).json({ error: "Acesso Negado" });
+
+            req.userId = decoded.id;
 
             next();
         },
