@@ -1,16 +1,30 @@
 import axios from "axios";
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import {
+    useContext,
+    useEffect,
+    useState,
+    type ChangeEvent,
+    type FormEvent,
+} from "react";
 import api from "../services/axios";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 function Register() {
     const navigate = useNavigate();
+    const authCtx = useContext(AuthContext);
 
     const [formData, setFormData] = useState({
         name: "",
         email: "",
         password: "",
     });
+
+    useEffect(() => {
+        if (authCtx?.isAuthenticated) {
+            navigate("/me");
+        }
+    }, [authCtx?.isAuthenticated, navigate]);
 
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
@@ -24,11 +38,11 @@ function Register() {
         try {
             const res = await api.post("/register", formData);
 
-            localStorage.setItem("token", res.data.token);
+            authCtx?.setTokenFunction(res.data.token);
             setSuccessMessage("Conta criada com sucesso!");
 
             setTimeout(() => {
-                navigate("/home");
+                navigate("/");
             }, 3000);
         } catch (error: unknown) {
             if (axios.isAxiosError(error)) {
@@ -115,6 +129,18 @@ function Register() {
                         {errorMessage}
                     </p>
                 )}
+
+                <div className="text-center mt-4">
+                    <p className="inline ">Tem uma conta?</p>{" "}
+                    <span
+                        className="text-sky-500 cursor-pointer hover:text-sky-900"
+                        onClick={() => {
+                            navigate("/login");
+                        }}
+                    >
+                        Entrar
+                    </span>
+                </div>
             </div>
         </div>
     );

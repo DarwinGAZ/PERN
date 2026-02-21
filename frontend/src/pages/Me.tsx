@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import api from "../services/axios";
+import { AuthContext } from "../context/AuthContext";
+import { Navigate } from "react-router-dom";
 
 function Me() {
     type User = {
@@ -9,18 +11,14 @@ function Me() {
         createdAt: string;
     };
 
+    const authCtx = useContext(AuthContext);
+
     const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const token = localStorage.getItem("token");
-
-                const res = await api.get("/me", {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const res = await api.get("/me");
 
                 setUser(res.data.user);
             } catch (error) {
@@ -83,8 +81,8 @@ function Me() {
                 </button>
                 <button
                     onClick={() => {
-                        localStorage.removeItem("token");
-                        window.location.href = "/";
+                        authCtx?.clearTokenFunction();
+                        Navigate({ to: "/" });
                     }}
                     className="mt-2 w-full bg-red-500 hover:bg-red-600 transition text-white py-2 rounded-lg font-medium"
                 >

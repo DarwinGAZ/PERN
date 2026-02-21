@@ -1,10 +1,24 @@
 import axios from "axios";
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import {
+    useContext,
+    useEffect,
+    useState,
+    type ChangeEvent,
+    type FormEvent,
+} from "react";
 import api from "../services/axios";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 function Login() {
     const navigate = useNavigate();
+    const authCtx = useContext(AuthContext);
+
+    useEffect(() => {
+        if (authCtx?.isAuthenticated) {
+            navigate("/me");
+        }
+    }, [authCtx?.isAuthenticated, navigate]);
 
     const [formData, setFormData] = useState({
         email: "",
@@ -22,9 +36,9 @@ function Login() {
         try {
             const res = await api.post("/login", formData);
 
-            localStorage.setItem("token", res.data.token);
+            authCtx?.setTokenFunction(res.data.token);
 
-            navigate("/home");
+            navigate("/");
         } catch (error: unknown) {
             if (axios.isAxiosError(error)) {
                 setErrorMessage(
@@ -51,7 +65,6 @@ function Login() {
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
             <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
                 <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <input
                         type="email"
@@ -79,12 +92,22 @@ function Login() {
                         {loading ? "Entrando..." : "Entrar"}
                     </button>
                 </form>
-
                 {errorMessage && (
                     <p className="mt-4 text-red-500 text-center text-sm">
                         {errorMessage}
                     </p>
                 )}
+                <div className="text-center mt-4">
+                    <p className="inline ">Não tem uma conta?</p>{" "}
+                    <span
+                        className="text-sky-500 cursor-pointer hover:text-sky-900"
+                        onClick={() => {
+                            navigate("/login");
+                        }}
+                    >
+                        Registrar-se
+                    </span>
+                </div>
             </div>
         </div>
     );
