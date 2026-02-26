@@ -2,7 +2,7 @@ import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 import { AuthRequest } from "../types/AuthType";
 
-export const createJWT = (id: number) => {
+export const createJWT = (id: string) => {
     return jwt.sign({ id }, process.env.JWT_SECRET as string, {
         expiresIn: "7d",
     });
@@ -19,7 +19,7 @@ export const verifyJWT = (
     const token = authHeader.split(" ")[1];
 
     jwt.verify(
-        token,
+        token as string,
         process.env.JWT_SECRET as string,
         (error, decoded: any) => {
             if (error) return res.status(401).json({ error: "Acesso Negado" });

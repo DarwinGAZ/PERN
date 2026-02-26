@@ -1,13 +1,20 @@
 import { RequestHandler, Response } from "express";
 import {
     createUserService,
+    deleteUserService,
     getAllUsersService,
     getUserByEmailService,
     getUserById,
+    updateUserRoleService,
+    updateUserService,
 } from "../services/userService";
-import { createUserSchema, loginUserSchema } from "../schemas/userSchema";
+import {
+    createUserSchema,
+    loginUserSchema,
+    updateUserRoleSchema,
+    updateUserSchema,
+} from "../schemas/userSchema";
 import { compare } from "bcrypt";
-import JWT from "jsonwebtoken";
 import dotenv from "dotenv";
 import { createJWT } from "../libs/jwt";
 import { AuthRequest } from "../types/AuthType";
@@ -16,6 +23,10 @@ dotenv.config();
 
 export const getAllUsers: RequestHandler = async (req, res) => {
     const users = await getAllUsersService();
+
+    if (!users || users.length === 0) {
+        return res.status(204).json({ message: "Nenhum usuário encontrado" });
+    }
 
     return res.json(users);
 };
@@ -80,4 +91,51 @@ export const getUser = async (req: AuthRequest, res: Response) => {
     const user = await getUserById(id);
 
     return res.status(200).json({ user });
+};
+
+export const deleteUser: RequestHandler = async (req, res) => {
+    const id = req.params.id;
+
+    const user = await deleteUserService(id as string);
+
+    return res.status(200).json({
+        message: "Usuário deletado com sucesso",
+        user,
+    });
+};
+
+export const updateUser = async (req: AuthRequest, res: Response) => {
+    const data = await updateUserSchema.safeParse(req.body);
+
+    if (!data.success) {
+        return res.json({ error: data.error.flatten().fieldErrors });
+    }
+
+    const updatedUser = await updateUserService(req.userId as string, {
+        ...(data.data.email && { email: data.data.email }),
+        ...(data.data.name && { name: data.data.name }),
+        ...(data.data.password && { password: data.data.password }),
+    });
+    return res.status(200).json({ updatedUser });
+};
+
+export const updateUserRole = async (req: AuthRequest, res: Response) => {
+    const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).json({ error: "ID do usuário não fornecido" });
+    }
+
+    const data = await updateUserRoleSchema.safeParse(req.body);
+
+    if (!data.success) {
+        return res.json({ error: data.error.flatten().fieldErrors });
+    }
+
+    const updatedUser = await updateUserRoleService(
+        id as string,
+        data.data.role,
+    );
+
+    return res.status(200).json({ updatedUser });
 };

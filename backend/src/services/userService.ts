@@ -1,3 +1,8 @@
+import { Prisma, Role } from "../generated/prisma/client";
+import {
+    EnumRoleFieldRefInput,
+    EnumRoleFieldUpdateOperationsInput,
+} from "../generated/prisma/internal/prismaNamespace";
 import { hashPassword } from "../libs/bcrypt";
 import prisma from "../libs/prisma";
 
@@ -33,14 +38,45 @@ export const getUserByEmailService = async (email: string) => {
     return user;
 };
 
-export const getUserById = async (id: number) => {
+export const getUserById = async (id: string) => {
     const user = await prisma.user.findUnique({
         where: { id },
-        select: {
-            id: true,
-            name: true,
-            email: true,
-            createdAt: true,
+    });
+
+    return user;
+};
+
+export const deleteUserService = async (id: string) => {
+    const user = await prisma.user.delete({
+        where: {
+            id,
+        },
+    });
+
+    return user;
+};
+
+export const updateUserService = async (
+    id: string,
+    data: Prisma.UserUpdateInput,
+) => {
+    const user = await prisma.user.update({
+        where: {
+            id,
+        },
+        data,
+    });
+
+    return user;
+};
+
+export const updateUserRoleService = async (id: string, role: Role) => {
+    const user = await prisma.user.update({
+        where: {
+            id,
+        },
+        data: {
+            role,
         },
     });
 

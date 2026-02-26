@@ -8,9 +8,66 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   name      String
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+  role      Role @default(USER)
+
+  services   Service[]
+  proposals  Proposal[]
+  reviewsGiven  Review[] @relation("ReviewAuthor")
+  reviewsRecv   Review[] @relation("ReviewTarget")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  price       Float
+  location    String
+  createdAt   DateTime @default(now())
+
+  ownerId String
+  owner   User @relation(fields: [ownerId], references: [id])
+
+  proposals Proposal[]
+}
+
+model Proposal {
+  id        String   @id @default(uuid())
+  message   String
+  status    ProposalStatus @default(PENDING)
+  createdAt DateTime @default(now())
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  applicantId String
+  applicant   User @relation(fields: [applicantId], references: [id])
+}
+
+enum ProposalStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  authorId String
+  author   User @relation("ReviewAuthor", fields: [authorId], references: [id])
+
+  targetId String
+  target   User @relation("ReviewTarget", fields: [targetId], references: [id])
 }
