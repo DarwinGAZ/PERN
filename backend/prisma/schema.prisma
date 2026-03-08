@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -15,6 +15,7 @@ model User {
   createdAt DateTime @default(now())
   role      Role @default(USER)
 
+  messages   Message[]
   services   Service[]
   proposals  Proposal[]
   reviewsGiven  Review[] @relation("ReviewAuthor")
@@ -32,17 +33,26 @@ model Service {
   description String
   price       Float
   location    String
+  status     ServiceStatus @default(OPEN)
   createdAt   DateTime @default(now())
 
+  messages Message[]
   ownerId String
   owner   User @relation(fields: [ownerId], references: [id])
 
   proposals Proposal[]
 }
 
+enum ServiceStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+}
+
 model Proposal {
   id        String   @id @default(uuid())
   message   String
+  price     Float
   status    ProposalStatus @default(PENDING)
   createdAt DateTime @default(now())
 
@@ -71,3 +81,16 @@ model Review {
   targetId String
   target   User @relation("ReviewTarget", fields: [targetId], references: [id])
 }
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id])
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id])
+}
+

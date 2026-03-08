@@ -8,6 +8,7 @@ import {
     createServiceService,
     deleteServicesService,
     getAllServicesService,
+    getLocationsOnServicesService,
     getMyServicesService,
     getServiceByIdService,
     updateServiceService,
@@ -38,9 +39,10 @@ export const createService = async (req: AuthRequest, res: Response) => {
 };
 
 export const getAllServices: RequestHandler = async (req, res) => {
-    const services = await getAllServicesService();
+    const page = Number(req.query.page) || 1;
+    const services = await getAllServicesService(page);
 
-    if (!services || services.length === 0) {
+    if (!services || services.services.length === 0) {
         return res.status(204).json({ message: "Nenhum serviço encontrado" });
     }
 
@@ -132,4 +134,9 @@ export const updateService = async (req: AuthRequest, res: Response) => {
     });
 
     res.status(200).json(updatedService);
+};
+
+export const getLocationsOnServices: RequestHandler = async (req, res) => {
+    const locations = await getLocationsOnServicesService();
+    res.status(200).json(locations);
 };

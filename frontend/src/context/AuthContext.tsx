@@ -1,43 +1,65 @@
 import { createContext, useEffect, useState, type ReactNode } from "react";
+import api from "../services/axios";
+import type { RegisterSchema } from "@/schemas/RegisterSchema";
+
+type User = {
+    id: string;
+    name: string;
+    email: string;
+    role: "ADMIN" | "USER";
+    createdAt: string;
+};
 
 type AuthContextType = {
-    token: string | null;
-    setTokenFunction: (token: string) => void;
-    clearTokenFunction: () => void;
+    user: User | null;
     isAuthenticated: boolean;
+    isLoading: boolean;
+    register: (data: RegisterSchema) => Promise<void>;
+    login: (email: string, password: string) => Promise<void>;
+    logout: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [token, setToken] = useState<string | null>(null);
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const storedToken = localStorage.getItem("token");
-        if (storedToken) {
-            setToken(storedToken);
-        }
+        api.get("/me")
+            .then((res) => {
+                setUser(res.data);
+            })
+            .catch(() => setUser(null))
+            .finally(() => setIsLoading(false));
     }, []);
 
-    const setTokenFunction = (newToken: string) => {
-        setToken(newToken);
-        localStorage.setItem("token", newToken);
+    const register = async (data: RegisterSchema) => {
+        await api.post("/register", data);
+        const res = await api.get("/me");
+        setUser(res.data);
     };
 
-    const clearTokenFunction = () => {
-        setToken(null);
-        localStorage.removeItem("token");
+    const login = async (email: string, password: string) => {
+        await api.post("/login", { email, password });
+        const res = await api.get("/me");
+        setUser(res.data);
     };
 
-    const isAuthenticated = !!token;
+    const logout = async () => {
+        await api.post("/logout");
+        setUser(null);
+    };
 
     return (
         <AuthContext.Provider
             value={{
-                token,
-                setTokenFunction,
-                clearTokenFunction,
-                isAuthenticated,
+                user,
+                isAuthenticated: !!user,
+                isLoading,
+                register,
+                login,
+                logout,
             }}
         >
             {children}

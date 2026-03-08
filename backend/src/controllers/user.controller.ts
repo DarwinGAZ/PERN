@@ -52,7 +52,14 @@ export const createNewUser: RequestHandler = async (req, res) => {
 
     const token = createJWT(newUser.id);
 
-    return res.status(201).json({ newUser, token });
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(201).json({ message: "Usuário criado com sucesso!" });
 };
 
 export const login: RequestHandler = async (req, res) => {
@@ -78,19 +85,42 @@ export const login: RequestHandler = async (req, res) => {
 
     const token = createJWT(user.id);
 
-    res.status(200).json({ user, token });
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({ message: "Login realizado com sucesso!" });
 };
 
 export const getUser = async (req: AuthRequest, res: Response) => {
     const id = req.userId;
 
     if (!id) {
-        return res.status(406).json({ error: "Ocorreu um erro" });
+        return res.status(406).json({ error: "Id não fornecido" });
     }
 
     const user = await getUserById(id);
 
-    return res.status(200).json({ user });
+    if (!user) {
+        return res.status(404).json({ error: "Usuário não encontrado" });
+    }
+
+    const { password, ...userWithoutPassword } = user;
+
+    return res.status(200).json(userWithoutPassword);
+};
+
+export const logout: RequestHandler = (req, res) => {
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+    });
+
+    return res.status(200).json({ message: "Logout realizado com sucesso!" });
 };
 
 export const deleteUser: RequestHandler = async (req, res) => {

@@ -24,10 +24,15 @@ export const getServiceByIdService = async (serviceId: string) => {
     return service;
 };
 
-export const getAllServicesService = async () => {
-    const services = await prisma.service.findMany();
+export const getAllServicesService = async (page: number = 1) => {
+    let skip = (page - 1) * 12;
 
-    return services;
+    const [services, total] = await prisma.$transaction([
+        prisma.service.findMany({ take: 12, skip }),
+        prisma.service.count(),
+    ]);
+
+    return { services, page, total };
 };
 
 export const getMyServicesService = async (ownerId: string) => {
@@ -41,10 +46,12 @@ export const getMyServicesService = async (ownerId: string) => {
 };
 
 export const deleteServicesService = async (serviceId: string) => {
+    await prisma.proposal.deleteMany({
+        where: { serviceId },
+    });
+
     const deletedService = await prisma.service.delete({
-        where: {
-            id: serviceId,
-        },
+        where: { id: serviceId },
     });
 
     return deletedService;
@@ -62,4 +69,14 @@ export const updateServiceService = async (
     });
 
     return updateService;
+};
+
+export const getLocationsOnServicesService = async () => {
+    const locations = await prisma.service.findMany({
+        select: {
+            location: true,
+        },
+    });
+
+    return locations.map((loc) => loc.location);
 };

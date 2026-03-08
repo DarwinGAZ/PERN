@@ -1,22 +1,17 @@
 {
     "compilerOptions": {
-        "rootDir": "./src",
+        "rootDir": ".",
         "outDir": "./dist",
-
         "module": "nodenext",
         "moduleResolution": "nodenext",
         "target": "esnext",
-
         "types": ["node"],
-
         "sourceMap": true,
-
         "strict": true,
         "isolatedModules": true,
         "noUncheckedIndexedAccess": true,
-        "exactOptionalPropertyTypes": true,
-
+        "exactOptionalPropertyTypes": false,
         "skipLibCheck": true
     },
-    "include": ["src"]
+    "include": ["src", "generated"]
 }

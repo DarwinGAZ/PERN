@@ -1,12 +1,17 @@
 // PrivateRoute.tsx
 import { useContext, type JSX } from "react";
 import { Navigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../../context/AuthContext";
+import Loading from "../layouts/Loading";
 
 export function PrivateRoute({ children }: { children: JSX.Element }) {
-    const auth = useContext(AuthContext);
+    const authCtx = useContext(AuthContext);
 
-    if (!auth?.isAuthenticated) {
+    if (authCtx?.isLoading) {
+        return <Loading />;
+    }
+
+    if (!authCtx?.isAuthenticated) {
         return <Navigate to="/login" />;
     }
 

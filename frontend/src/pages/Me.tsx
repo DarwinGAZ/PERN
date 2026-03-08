@@ -1,94 +1,105 @@
 import { useContext, useEffect, useState } from "react";
-import api from "../services/axios";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { Navigate } from "react-router-dom";
+import Loading from "@/components/layouts/Loading";
+import { Container } from "@/components/layouts/Container";
+import {
+    Empty,
+    EmptyContent,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from "@/components/ui/empty";
+import { UserCircle } from "lucide-react";
+import { UserSidebar } from "@/components/user/UserSidebar";
+import { UserActivity } from "@/components/user/UserActivity";
+import api from "@/services/axios";
+import type { Service } from "@/types/ServiceType";
+import type { Proposal } from "@/types/ProposalType";
 
 function Me() {
-    type User = {
-        id: number;
-        name: string;
-        email: string;
-        createdAt: string;
-    };
-
     const authCtx = useContext(AuthContext);
+    const navigate = useNavigate();
+    const user = authCtx?.user;
 
-    const [user, setUser] = useState<User | null>(null);
+    const [services, setServices] = useState<Service[]>([]);
+    const [proposals, setProposals] = useState<Proposal[]>([]);
+    const [loadingData, setLoadingData] = useState(true);
 
     useEffect(() => {
-        const fetchUser = async () => {
+        async function fetchAll() {
             try {
-                const res = await api.get("/me");
-
-                setUser(res.data.user);
+                const [servicesRes, proposalsRes] = await Promise.all([
+                    api.get<Service[]>("/me/services"),
+                    api.get<Proposal[]>("/me/proposals"),
+                ]);
+                setServices(servicesRes.data);
+                setProposals(proposalsRes.data);
             } catch (error) {
-                console.error("Erro ao buscar usuário", error);
+                console.error(error);
+            } finally {
+                setLoadingData(false);
             }
-        };
+        }
+        if (user) fetchAll();
+    }, [user]);
 
-        fetchUser();
-    }, []);
+    if (authCtx?.isLoading || loadingData) {
+        return <Loading />;
+    }
 
     if (!user) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
-                <p className="animate-pulse text-lg">Carregando perfil...</p>
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <Empty className="w-full max-w-sm">
+                    <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                            <UserCircle className="size-6 text-muted-foreground" />
+                        </EmptyMedia>
+                        <EmptyTitle>Usuário não encontrado</EmptyTitle>
+                        <EmptyDescription>
+                            Não foi possível carregar os dados do perfil.
+                        </EmptyDescription>
+                    </EmptyHeader>
+                    <EmptyContent />
+                </Empty>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-900 px-4">
-            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 text-center">
-                {/* Avatar */}
-                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-bold">
-                    {user.name.charAt(0).toUpperCase()}
-                </div>
-
-                {/* Nome */}
-                <h2 className="text-2xl font-semibold text-slate-800">
-                    {user.name}
-                </h2>
-
-                {/* Email */}
-                <p className="text-slate-500 mb-6">{user.email}</p>
-
-                {/* Info box */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-100 rounded-lg p-3">
-                        <span className="text-xs text-slate-500">ID</span>
-                        <p className="font-medium text-slate-800">{user.id}</p>
-                    </div>
-
-                    <div className="bg-slate-100 rounded-lg p-3">
-                        <span className="text-xs text-slate-500">
-                            Criado em
-                        </span>
-                        <p className="font-medium text-slate-800">
-                            {new Date(user.createdAt).toLocaleDateString()}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Botão */}
-                <button
-                    onClick={() => {
-                        window.location.href = "/";
-                    }}
-                    className="mt-6 w-full bg-green-500 hover:bg-green-600 transition text-white py-2 rounded-lg font-medium"
-                >
-                    Voltar Pra Home
-                </button>
-                <button
-                    onClick={() => {
-                        authCtx?.clearTokenFunction();
-                        Navigate({ to: "/" });
-                    }}
-                    className="mt-2 w-full bg-red-500 hover:bg-red-600 transition text-white py-2 rounded-lg font-medium"
-                >
-                    Logout
-                </button>
+        <div className="min-h-screen bg-background">
+            {/* Page header */}
+            <div className="border-b bg-muted/40">
+                <Container className="py-10">
+                    <p className="text-sm text-muted-foreground mb-1">Conta</p>
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        Meu Perfil
+                    </h1>
+                </Container>
             </div>
+
+            {/* Body: activity (left) + sidebar (right) */}
+            <Container className="py-10">
+                <div className="flex flex-col-reverse lg:flex-row gap-8 items-start">
+                    {/* Left — activity */}
+                    <UserActivity services={services} proposals={proposals} />
+
+                    {/* Right — profile sidebar */}
+                    <div className="w-full lg:w-72 shrink-0 lg:sticky lg:top-6">
+                        <UserSidebar
+                            user={user}
+                            servicesCount={services.length}
+                            proposalsCount={proposals.length}
+                            onLogout={() => {
+                                authCtx?.logout();
+                                navigate("/");
+                            }}
+                        />
+                    </div>
+                </div>
+            </Container>
         </div>
     );
 }

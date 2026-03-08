@@ -13,10 +13,9 @@ export const verifyJWT = (
     res: Response,
     next: NextFunction,
 ) => {
-    const authHeader = req.headers["authorization"];
-    if (!authHeader) return res.status(401).json({ error: "Acesso Negado" });
+    const token = req.cookies?.token;
 
-    const token = authHeader.split(" ")[1];
+    if (!token) return res.status(401).json({ error: "Acesso Negado" });
 
     jwt.verify(
         token as string,
@@ -29,4 +28,20 @@ export const verifyJWT = (
             next();
         },
     );
+};
+
+export const verifyJWTSocket = (socket: any, next: any) => {
+    const token = socket.handshake.auth.token;
+
+    if (!token) return next(new Error("Não autorizado"));
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+            userId: string;
+        };
+        socket.data.userId = decoded.userId;
+        next();
+    } catch {
+        next(new Error("Token inválido"));
+    }
 };

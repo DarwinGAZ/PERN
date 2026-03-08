@@ -1,11 +1,14 @@
 import { Response } from "express";
 import { AuthRequest } from "../types/AuthType";
 import {
+    acceptProposalService,
     createProposalService,
     deleteProposalService,
     getAllProposalService,
+    getMyProposalsService,
     getProposalByServiceIdService,
     getProposalsInServiceIdService,
+    rejectProposalService,
     updateProposalService,
 } from "../services/proposalService";
 import {
@@ -13,11 +16,14 @@ import {
     updateProposalSchema,
 } from "../schemas/proposalSchema";
 import { getServiceByIdService } from "../services/serviceService";
+import cookieParser from "cookie-parser";
 
 export const createProposal = async (req: AuthRequest, res: Response) => {
     const data = await createProposalSchema.safeParse(req.body);
     if (!data.success) {
-        return res.json({ error: data.error.flatten().fieldErrors });
+        return res
+            .status(400)
+            .json({ error: data.error.flatten().fieldErrors });
     }
 
     const applicantId = req.userId;
@@ -57,6 +63,7 @@ export const createProposal = async (req: AuthRequest, res: Response) => {
 
     const newProposal = await createProposalService(
         data.data.message,
+        data.data.price,
         applicantId,
         serviceId as string,
     );
@@ -121,5 +128,61 @@ export const updateProposal = async (req: AuthRequest, res: Response) => {
         ...(data.data.message && { message: data.data.message }),
         ...(data.data.status && { status: data.data.status }),
     });
+    return res.status(200).json(updatedProposal);
+};
+
+export const getMyProposals = async (req: AuthRequest, res: Response) => {
+    const token = req.cookies.token;
+
+    if (!token) {
+        return res.status(401).json({ error: "Não autorizado" });
+    }
+
+    const applicantId = req.userId;
+
+    const proposals = await getMyProposalsService(applicantId as string);
+
+    if (!proposals || proposals.length === 0) {
+        return res.status(204).json({ message: "Nenhuma proposta encontrada" });
+    }
+
+    return res.status(200).json(proposals);
+};
+
+export const acceptProposal = async (req: AuthRequest, res: Response) => {
+    const { id } = req.params;
+    const userId = req.userId;
+
+    if (!userId) return res.status(401).json({ error: "Não autorizado" });
+
+    if (!id) {
+        return res.status(400).json({ error: "Id da proposta não informado" });
+    }
+
+    const updatedProposal = await acceptProposalService(id as string, userId);
+
+    if (!updatedProposal) {
+        return res.status(404).json({ error: "Proposta não encontrada" });
+    }
+
+    return res.status(200).json(updatedProposal);
+};
+
+export const rejectProposal = async (req: AuthRequest, res: Response) => {
+    const { id } = req.params;
+    const userId = req.userId;
+
+    if (!userId) return res.status(401).json({ error: "Não autorizado" });
+
+    if (!id) {
+        return res.status(400).json({ error: "Id da proposta não informado" });
+    }
+
+    const updatedProposal = await rejectProposalService(id as string, userId);
+
+    if (!updatedProposal) {
+        return res.status(404).json({ error: "Proposta não encontrada" });
+    }
+
     return res.status(200).json(updatedProposal);
 };
