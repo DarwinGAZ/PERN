@@ -8,6 +8,9 @@
         "start": "node dist/server.js",
         "dev": "ts-node-dev src/server.ts"
     },
+    "engines": {
+        "node": ">=22.12"
+    },
     "author": "",
     "license": "ISC",
     "dependencies": {
