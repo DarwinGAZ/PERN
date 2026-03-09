@@ -1,0 +1,9 @@
+{
+    "build": {
+        "builder": "NIXPACKS"
+    },
+    "deploy": {
+        "startCommand": "npx prisma migrate deploy && node dist/server.js",
+        "restartPolicyType": "ON_FAILURE"
+    }
+}
