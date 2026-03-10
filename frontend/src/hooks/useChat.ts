@@ -18,7 +18,7 @@ export function useChat(serviceId: string) {
             .find((r) => r.startsWith("token="))
             ?.split("=")[1];
 
-        const socket = io("http://localhost:3000", {
+        const socket = io(import.meta.env.VITE_API_URL, {
             auth: { token },
         });
 
