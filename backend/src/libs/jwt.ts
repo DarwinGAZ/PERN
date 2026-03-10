@@ -1,6 +1,6 @@
 import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
-import { AuthRequest } from "../types/AuthType";
+import { AuthRequest } from "../types/AuthType.js";
 
 export const createJWT = (id: string) => {
     return jwt.sign({ id }, process.env.JWT_SECRET as string, {

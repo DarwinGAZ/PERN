@@ -1,26 +1,11 @@
-import { Prisma, Role } from "../generated/prisma/client.js";
-import {
-    EnumRoleFieldRefInput,
-    EnumRoleFieldUpdateOperationsInput,
-} from "../generated/prisma/internal/prismaNamespace.js";
 import { hashPassword } from "../libs/bcrypt.js";
 import prisma from "../libs/prisma.js";
-
-interface createUserInput {
-    name: string;
-    email: string;
-    password: string;
-}
-
 export const getAllUsersService = async () => {
     const users = await prisma.user.findMany();
-
     return users;
 };
-
-export const createUserService = async (data: createUserInput) => {
+export const createUserService = async (data) => {
     const passwordCrypt = await hashPassword(data.password);
-
     const newUser = await prisma.user.create({
         data: {
             email: data.email.toLowerCase(),
@@ -28,49 +13,36 @@ export const createUserService = async (data: createUserInput) => {
             password: passwordCrypt,
         },
     });
-
     return newUser;
 };
-
-export const getUserByEmailService = async (email: string) => {
+export const getUserByEmailService = async (email) => {
     const user = await prisma.user.findUnique({ where: { email } });
-
     return user;
 };
-
-export const getUserById = async (id: string) => {
+export const getUserById = async (id) => {
     const user = await prisma.user.findUnique({
         where: { id },
     });
-
     return user;
 };
-
-export const deleteUserService = async (id: string) => {
+export const deleteUserService = async (id) => {
     const user = await prisma.user.delete({
         where: {
             id,
         },
     });
-
     return user;
 };
-
-export const updateUserService = async (
-    id: string,
-    data: Prisma.UserUpdateInput,
-) => {
+export const updateUserService = async (id, data) => {
     const user = await prisma.user.update({
         where: {
             id,
         },
         data,
     });
-
     return user;
 };
-
-export const updateUserRoleService = async (id: string, role: Role) => {
+export const updateUserRoleService = async (id, role) => {
     const user = await prisma.user.update({
         where: {
             id,
@@ -79,6 +51,6 @@ export const updateUserRoleService = async (id: string, role: Role) => {
             role,
         },
     });
-
     return user;
 };
+//# sourceMappingURL=userService.js.map

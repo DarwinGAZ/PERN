@@ -1,7 +1,6 @@
 import { NextFunction, Response } from "express";
-import { AuthRequest } from "../types/AuthType";
-import prisma from "../libs/prisma";
-import { getUserById } from "../services/userService";
+import { AuthRequest } from "../types/AuthType.js";
+import { getUserById } from "../services/userService.js";
 
 export const verifyAdmin = async (
     req: AuthRequest,

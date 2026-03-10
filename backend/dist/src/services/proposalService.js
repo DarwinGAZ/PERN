@@ -1,12 +1,5 @@
-import { Prisma } from "../generated/prisma/client.js";
 import prisma from "../libs/prisma.js";
-
-export const createProposalService = async (
-    message: string,
-    price: number,
-    applicantId: string,
-    serviceId: string,
-) => {
+export const createProposalService = async (message, price, applicantId, serviceId) => {
     const newProposal = await prisma.proposal.create({
         data: {
             message,
@@ -15,25 +8,18 @@ export const createProposalService = async (
             serviceId,
         },
     });
-
     return newProposal;
 };
-
-export const getProposalByServiceIdService = async (
-    serviceId: string,
-    applicantId: string,
-) => {
+export const getProposalByServiceIdService = async (serviceId, applicantId) => {
     const proposal = await prisma.proposal.findFirst({
         where: {
             serviceId,
             applicantId,
         },
     });
-
     return proposal;
 };
-
-export const getProposalsInServiceIdService = async (serviceId: string) => {
+export const getProposalsInServiceIdService = async (serviceId) => {
     const proposals = await prisma.proposal.findMany({
         where: {
             serviceId,
@@ -44,41 +30,30 @@ export const getProposalsInServiceIdService = async (serviceId: string) => {
             },
         },
     });
-
     return proposals;
 };
-
 export const getAllProposalService = async () => {
     const proposals = await prisma.proposal.findMany({});
-
     return proposals;
 };
-
-export const deleteProposalService = async (proposalId: string) => {
+export const deleteProposalService = async (proposalId) => {
     const deletedProposal = await prisma.proposal.delete({
         where: {
             id: proposalId,
         },
     });
-
     return deletedProposal;
 };
-
-export const updateProposalService = async (
-    id: string,
-    data: Prisma.ProposalUpdateInput,
-) => {
+export const updateProposalService = async (id, data) => {
     const updatedProposal = await prisma.proposal.update({
         where: {
             id,
         },
         data,
     });
-
     return updatedProposal;
 };
-
-export const getMyProposalsService = async (applicantId: string) => {
+export const getMyProposalsService = async (applicantId) => {
     const proposals = await prisma.proposal.findMany({
         where: { applicantId },
         include: {
@@ -93,26 +68,19 @@ export const getMyProposalsService = async (applicantId: string) => {
             },
         },
     });
-
     return proposals;
 };
-
-export const acceptProposalService = async (
-    proposalId: string,
-    userId: string,
-) => {
+export const acceptProposalService = async (proposalId, userId) => {
     const proposal = await prisma.proposal.findUnique({
         where: { id: proposalId },
         include: { service: true },
     });
-
-    if (!proposal) throw new Error("Proposta não encontrada");
-
-    if (proposal.service.ownerId !== userId) throw new Error("Sem permissão");
-
+    if (!proposal)
+        throw new Error("Proposta não encontrada");
+    if (proposal.service.ownerId !== userId)
+        throw new Error("Sem permissão");
     if (proposal.status !== "PENDING")
         throw new Error("Proposta já foi processada");
-
     await prisma.$transaction([
         prisma.proposal.update({
             where: { id: proposalId },
@@ -127,28 +95,22 @@ export const acceptProposalService = async (
             data: { status: "IN_PROGRESS" },
         }),
     ]);
-
     return { message: "Proposta aceita com sucesso", proposal };
 };
-
-export const rejectProposalService = async (
-    proposalId: string,
-    userId: string,
-) => {
+export const rejectProposalService = async (proposalId, userId) => {
     const proposal = await prisma.proposal.findUnique({
         where: { id: proposalId },
         include: { service: true },
     });
-
-    if (!proposal) throw new Error("Proposta não encontrada");
-
-    if (proposal.service.ownerId !== userId) throw new Error("Sem permissão");
-
+    if (!proposal)
+        throw new Error("Proposta não encontrada");
+    if (proposal.service.ownerId !== userId)
+        throw new Error("Sem permissão");
     if (proposal.status !== "PENDING")
         throw new Error("Proposta já foi processada");
-
     return await prisma.proposal.update({
         where: { id: proposalId },
         data: { status: "REJECTED" },
     });
 };
+//# sourceMappingURL=proposalService.js.map

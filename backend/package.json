@@ -2,10 +2,11 @@
     "name": "backend",
     "version": "1.0.0",
     "description": "",
-    "main": "dist/server.js",
+    "type": "module",
+    "main": "dist/src/server.js",
     "scripts": {
         "build": "tsc",
-        "start": "node dist/server.js",
+        "start": "node dist/src/server.js",
         "dev": "ts-node-dev src/server.ts"
     },
     "engines": {
