@@ -9,7 +9,12 @@ import prisma from "./libs/prisma.js";
 
 const app = express();
 
-app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
+app.use(
+    cors({
+        credentials: true,
+        origin: ["http://localhost:5173", "https://pern-blond.vercel.app"],
+    }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -18,7 +23,10 @@ app.use(routes);
 const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
-    cors: { origin: "http://localhost:5173", credentials: true },
+    cors: {
+        origin: ["http://localhost:5173", "https://pern-blond.vercel.app"],
+        credentials: true,
+    },
 });
 
 io.use(verifyJWTSocket);
