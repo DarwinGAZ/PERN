@@ -26,9 +26,7 @@ import type { Service } from "@/types/ServiceType";
 import {
     Select,
     SelectContent,
-    SelectGroup,
     SelectItem,
-    SelectLabel,
     SelectTrigger,
     SelectValue,
 } from "./ui/select";

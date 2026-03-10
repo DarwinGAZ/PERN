@@ -4,7 +4,7 @@ import Register from "./pages/register";
 import Home from "./pages/home";
 import Users from "./pages/users";
 import Me from "./pages/Me";
-import { AuthContext, AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
 import { PrivateRoute } from "./components/auth/PrivateRoute";
 import NotFound from "./pages/NotFound";
 import { AdminRoute } from "./components/auth/AdminRoute";
