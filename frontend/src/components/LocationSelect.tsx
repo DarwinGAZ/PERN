@@ -38,6 +38,7 @@ export function LocationSelect({ value, onChange }: Props) {
                     "https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome",
                 );
                 const data = await res.json();
+                value = value || "";
                 setEstados(data);
             } catch (error) {
                 console.error("Erro ao buscar estados:", error);

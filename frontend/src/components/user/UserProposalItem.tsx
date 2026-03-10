@@ -1,4 +1,4 @@
-import { Clock, Tag, User } from "lucide-react";
+import { Clock, Tag } from "lucide-react";
 import { Badge } from "../ui/badge";
 import {
     Card,
@@ -16,11 +16,6 @@ function ProposalItem({
 }: {
     proposal: ProposalWithApplicant | Proposal;
 }) {
-    const applicantName =
-        "applicant" in proposal
-            ? proposal.applicant.name
-            : "Usuário não encontrado";
-
     const formattedDate = new Date(proposal.createdAt).toLocaleDateString(
         "pt-BR",
         {
