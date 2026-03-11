@@ -58,7 +58,9 @@ io.on("connection", (socket) => {
     });
 });
 
+const PORT = process.env.PORT || 3334;
+
 // httpServer no lugar do app.listen
-httpServer.listen(3334, () => {
-    console.log("Servidor rodando em http://localhost:3334");
+httpServer.listen(PORT, () => {
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
